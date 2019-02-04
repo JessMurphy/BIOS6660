@@ -1,0 +1,6 @@
+The R interpreter determines the value of a variable when executing a function by using lexical scoping. 
+It first looks for the variable in the function's temperory environment within the body of the function. 
+Variable names inside the function mask any variables with the same name defined outside of the function. 
+If the name doesn't exist inside the function, the interpreter looks for it one level up. 
+This may be the global environment or another function if the function was called within a function. 
+(Lecture 4: R continued slide 46)
