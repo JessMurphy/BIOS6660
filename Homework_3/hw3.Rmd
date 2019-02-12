@@ -1,0 +1,91 @@
+---
+title: "BIOS 6660 Homework 3"
+author: "Jessica Murphy"
+date: "February, 12 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+library(nycflights13)
+library(dplyr)
+library(ggplot2)
+```
+
+
+## Introduction
+
+The [nycflights13](https://cran.r-project.org/package=nycflights13) package contains information about all flights that departed the NYC area in 2013. It also includes metadata on airlines, airports, weather, and planes.
+
+
+```{r load_data}
+data(flights)
+```
+
+
+## Data summary
+
+The following code prints the variable names as well as the number of observations in the flights dataset. The variable names correspond with the names of the columns and the number of observations corresponds with the number of rows.
+
+
+```{r summarize_data}
+names(flights)
+nrow(flights)
+```
+
+
+## Top flight destinations
+
+The following code prints a table of the 10 most common destination cities and the number of flights to each destination in decreasing order. It uses a sequence of dplyr verbs joined by the pipe operator. First, it groups the data by destination and summarizes the number of flights to each destination. Then, it arranges the data in decreasing order by the number of flights and prints only the first 10 rows.
+
+
+```{r top_dest}
+flights %>%
+  group_by(dest) %>%
+  summarize(num_flights = n()) %>%
+  arrange(desc(num_flights)) %>%
+  head(num_flights, n=10)
+```
+
+
+## Arrival delays
+
+The following code prints a table of the mean arrival delay by carrier in decreasing order. It again uses a sequence of dplyr verbs joined by the pipe operator. First, it groups the data by carrier and summarizes the mean arrival delay for each carrier. (The NA values have to be removed in order to accurately calculate the mean.) Then, it arranges the data in decreasing order by the mean arrival delay.
+
+
+```{r delays}
+flights %>%
+  group_by(carrier) %>%
+  summarize(mean_arr_delay_min = mean(arr_delay, na.rm = TRUE)) %>%
+  arrange(desc(mean_arr_delay_min))
+```
+
+
+## Number of daily flights
+
+The following code creates a function that makes a histogram of the number of flights per day for one month. The argument of the function is a month number (mon) and the result is a plot object representing the histrogram. The body of the function calculates the number of days in the month as well as the flight data for the month. Then, ggplot is used to create the histogram. The number of days is used to specificy the number of bins in the histogram and the day variable in the plot data is used to specify the x values.    
+
+
+```{r daily_flights}
+plot_daily_flights <- function(mon) {
+  
+  num_days <- max(filter(flights, month == mon)$day) # Number of days in the month
+  plt_data <- flights %>% filter(month == mon) # Flight data for the month
+  
+  ggplot() +
+    geom_bar(bins = num_days) +
+    aes(x = plt_data$day) +
+    labs(x = "Day", y = "Flights", title = paste("Month:", mon)) +
+    theme_minimal()
+}
+```
+
+
+The following histograms show the number of flights per day for the months of June (6) and November (11). Each column represents a day of the month and the height of the bar represents the number of flights on that day. These plots were created using the previous function. Note: It was interesting to observe the weekly trend in flights.
+
+
+```{r plots, echo = FALSE}
+plot_daily_flights(6) # June
+plot_daily_flights(11) # November
+```
+
