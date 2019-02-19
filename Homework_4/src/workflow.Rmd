@@ -1,0 +1,65 @@
+---
+title: "Homework 4"
+author: "Jessica Murphy"
+date: "February 19, 2018"
+output: html_document
+---
+
+### Introduction
+
+We will be working with the [Traffic Counts](https://www.denvergov.org/opendata/dataset/city-and-county-of-denver-traffic-counts) dataset from the Denver Open Data Catalog. We demonstrate aspects of data management, code organization, and code quality.
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r load_external, include = FALSE}
+source("functions.R")
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+```
+
+
+## Run the tests
+
+Here we run our tests to check the implementations of our helper functions. If this document runs/knits without errors, that means the tests passed.
+
+```{r run_tests}
+source("tests.R")
+```
+
+
+### Load the dataset
+
+```{r load_data}
+data <- read.csv("../data/MASTER_TRAFFIC_COUNT.csv")
+```
+
+
+### Clean the data
+
+```{r clean_data}
+# Remove empty columns
+data <- data %>% select(-starts_with("X"))
+# Fix data types
+data$Volume <- as.integer(data$Volume)
+data$ADT <- as.integer(data$ADT)
+data$AAWDT <- as.integer(data$AAWDT)
+data$AAWET <- as.integer(data$AAWET)
+# Standardize street names
+data <- data %>% 
+  mutate(Main.Location = standardize_street(Main.Location),
+         Second.Location = standardize_street(Second.Location))
+```
+
+
+### Analyze the data
+
+For this exercise we simply create one plot and save it to a file.
+
+```{r }
+plt <- plot_avg_wkday_traffic(data)
+ggsave("../output/avg_wkday_traffic.png")
+```
+
+
