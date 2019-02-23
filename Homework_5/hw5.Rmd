@@ -126,3 +126,9 @@ ggplot(subset(data, !is.na(Paid))) +
   scale_y_log10() +
   theme(axis.title.x = element_blank())
 ```
+
+## Software environment
+
+```{r environment}
+sessionInfo()
+```
