@@ -1,13 +1,17 @@
 ---
 title: "Homework 5"
 author: "Jessica Murphy"
-date: "February 22, 2019"
+date: "February 26, 2019"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Overview
+
+In this document, we will be working with Facebook data from the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php). The dataset contains information about posts published on the Facebook page of a renowned cosmetics brand in 2014. More information can be found in the [Facebook_metrics](data/Facebook_metrics.txt) file.
 
 ## Data download
 
