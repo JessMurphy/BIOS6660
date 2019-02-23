@@ -1,0 +1,34 @@
+---
+title: "Homework 5"
+author: "Jessica Murphy"
+date: "February 22, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data download
+
+```{r data_download}
+# Directory to store data in
+data_dir <- "data"
+
+# Create data directory if it doesn't exist
+if(!dir.exists(data_dir)) {
+  dir.create(data_dir)
+}
+
+# File to save
+data_zip <- paste(data_dir, "Facebook_metrics.zip", sep = "/")
+
+url_data <- "http://archive.ics.uci.edu/ml/machine-learning-databases/00368/Facebook_metrics.zip"
+
+# Download and unzip file if it doesn't already exist 
+if(!file.exists(data_zip)) {
+    download.file(url_data, data_zip)
+    unzip(data_zip, exdir = data_dir)
+}
+```
+
