@@ -45,3 +45,22 @@ md5 <- md5sum(data_file)
 md5
 file.info(data_file)
 ```
+
+## Load data
+
+```{r load_data}
+data <- read.csv(data_file, header = TRUE, sep = ";")
+```
+
+## Data processing
+
+```{r data_processing}
+days_of_week <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+Day <- data$Post.Weekday
+
+for (i in 1:7){
+  Day[Day == i] <- days_of_week[[i]]
+}
+
+data$Day <- Day # add variable to data frame
+```

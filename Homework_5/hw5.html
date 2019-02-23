@@ -231,6 +231,21 @@ md5</code></pre>
 ##                                         ctime               atime exe
 ## data/dataset_Facebook.csv 2019-02-22 19:37:30 2019-02-22 19:37:30  no</code></pre>
 </div>
+<div id="load-data" class="section level2">
+<h2>Load data</h2>
+<pre class="r"><code>data &lt;- read.csv(data_file, header = TRUE, sep = &quot;;&quot;)</code></pre>
+</div>
+<div id="data-processing" class="section level2">
+<h2>Data processing</h2>
+<pre class="r"><code>days_of_week &lt;- c(&quot;Sunday&quot;, &quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, &quot;Friday&quot;, &quot;Saturday&quot;)
+Day &lt;- data$Post.Weekday
+
+for (i in 1:7){
+  Day[Day == i] &lt;- days_of_week[[i]]
+}
+
+data$Day &lt;- Day # add variable to data frame</code></pre>
+</div>
 
 
 
