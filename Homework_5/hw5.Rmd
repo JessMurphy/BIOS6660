@@ -6,7 +6,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r load_packages, include = FALSE}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
 ```
 
 ## Overview
@@ -54,6 +59,8 @@ data <- read.csv(data_file, header = TRUE, sep = ";")
 
 ## Data processing
 
+Here we add a column to the dataset with the day of the week spelled out using the Post.Weekday variable. We assume Sunday is 1.
+
 ```{r data_processing}
 days_of_week <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 Day <- data$Post.Weekday
@@ -63,4 +70,32 @@ for (i in 1:7){
 }
 
 data$Day <- Day # add variable to data frame
+```
+
+## Exploratory analysis
+
+Here we count the total number of each type of post.
+
+```{r exploratory_analysis_1}
+data %>% count(Type)
+```
+
+Here we create a ggplot boxplot of Total.Interactions by Type. We use a log10 scale for the y-axis.
+
+```{r exploratory_analysis_2}
+ggplot(data) +
+  aes(x = Type, y = Total.Interactions) +
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+Here we create another ggplot boxplot of Total.Interactions by Day. We again use a log10 scale for the y-axis and reorder the days for the x-axis.
+
+```{r exploratory_analysis_3}
+data$Day <- factor(data$Day, levels = days_of_week, ordered = TRUE)
+
+ggplot(data) +
+  aes(x = Day, y = Total.Interactions) +
+  geom_boxplot() +
+  scale_y_log10()
 ```
