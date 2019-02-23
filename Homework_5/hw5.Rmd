@@ -80,7 +80,7 @@ Here we count the total number of each type of post.
 data %>% count(Type)
 ```
 
-Here we create a ggplot boxplot of Total.Interactions by Type. We use a log10 scale for the y-axis.
+Here we create a ggplot boxplot of total interactions by type. We use a log10 scale for the y-axis.
 
 ```{r exploratory_analysis_2}
 ggplot(data) +
@@ -89,7 +89,7 @@ ggplot(data) +
   scale_y_log10()
 ```
 
-Here we create another ggplot boxplot of Total.Interactions by Day. We again use a log10 scale for the y-axis and reorder the days for the x-axis.
+Here we create another ggplot boxplot of total interactions by day. We again use a log10 scale for the y-axis and reorder the days for the x-axis.
 
 ```{r exploratory_analysis_3}
 data$Day <- factor(data$Day, levels = days_of_week, ordered = TRUE)
@@ -98,4 +98,31 @@ ggplot(data) +
   aes(x = Day, y = Total.Interactions) +
   geom_boxplot() +
   scale_y_log10()
+```
+
+## Data analysis
+
+Here we test to see if there is a significant difference in total interactions based on whether the posts were paid or not.
+
+```{r data_analysis_1}
+# Convert Paid into a categorical variable
+data$Paid <- factor(data$Paid)
+levels(data$Paid) <- c("not paid", "paid")
+
+paid_interactions <- data %>% filter(Paid == "paid") %>% select(Total.Interactions)
+unpaid_interactions <- data %>% filter(Paid == "not paid") %>% select(Total.Interactions)
+t.test(paid_interactions, unpaid_interactions)
+```
+
+Based on the test results, it seems paid interactions have a slightly higher mean than unpaid interactions. But there is not enough eveidence to suggest there is a significant difference between the two means.
+
+Now we will create a boxplot of total interactions by whether the posts were paid or not to get a better look.
+
+```{r data_analysis_2}
+# Do not plot NA values
+ggplot(subset(data, !is.na(Paid))) +
+  aes(x = Paid, y = Total.Interactions) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme(axis.title.x = element_blank())
 ```
