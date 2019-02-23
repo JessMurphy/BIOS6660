@@ -206,8 +206,9 @@ if(!dir.exists(data_dir)) {
   dir.create(data_dir)
 }
 
-# File to save
+# Files to save
 data_zip &lt;- paste(data_dir, &quot;Facebook_metrics.zip&quot;, sep = &quot;/&quot;)
+data_file &lt;- paste(data_dir, &quot;dataset_Facebook.csv&quot;, sep = &quot;/&quot;)
 
 url_data &lt;- &quot;http://archive.ics.uci.edu/ml/machine-learning-databases/00368/Facebook_metrics.zip&quot;
 
@@ -216,6 +217,19 @@ if(!file.exists(data_zip)) {
     download.file(url_data, data_zip)
     unzip(data_zip, exdir = data_dir)
 }</code></pre>
+</div>
+<div id="data-reproducibility" class="section level2">
+<h2>Data reproducibility</h2>
+<pre class="r"><code>library(tools)
+md5 &lt;- md5sum(data_file)
+md5</code></pre>
+<pre><code>##          data/dataset_Facebook.csv 
+## &quot;1d5e741a4ba198bb44736d5967d0ac59&quot;</code></pre>
+<pre class="r"><code>file.info(data_file)</code></pre>
+<pre><code>##                            size isdir mode               mtime
+## data/dataset_Facebook.csv 37891 FALSE  666 2019-02-22 19:37:30
+##                                         ctime               atime exe
+## data/dataset_Facebook.csv 2019-02-22 19:37:30 2019-02-22 19:37:30  no</code></pre>
 </div>
 
 

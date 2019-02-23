@@ -24,8 +24,9 @@ if(!dir.exists(data_dir)) {
   dir.create(data_dir)
 }
 
-# File to save
+# Files to save
 data_zip <- paste(data_dir, "Facebook_metrics.zip", sep = "/")
+data_file <- paste(data_dir, "dataset_Facebook.csv", sep = "/")
 
 url_data <- "http://archive.ics.uci.edu/ml/machine-learning-databases/00368/Facebook_metrics.zip"
 
@@ -36,3 +37,11 @@ if(!file.exists(data_zip)) {
 }
 ```
 
+## Data reproducibility
+
+```{r data_reproducibility}
+library(tools)
+md5 <- md5sum(data_file)
+md5
+file.info(data_file)
+```
