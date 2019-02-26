@@ -194,7 +194,7 @@ $(document).ready(function () {
 
 <div id="overview" class="section level2">
 <h2>Overview</h2>
-<p>In this document, we will be working with Facebook data from the <a href="https://archive.ics.uci.edu/ml/index.php">UC Irvine Machine Learning Repository</a>. The dataset contains information about posts published on the Facebook page of a renowned cosmetics brand in 2014. More information can be found in the <a href="data/Facebook_metrics.txt">Facebook_metrics</a> file.</p>
+<p>In this document, we will be working with Facebook data from the <a href="https://archive.ics.uci.edu/ml/index.php">UC Irvine Machine Learning Repository</a>. The dataset contains information about posts published on the Facebook page of a renowned cosmetics brand in 2014. More information can be found in <a href="data/Facebook_metrics.txt">Facebook_metrics.txt</a>.</p>
 </div>
 <div id="data-download" class="section level2">
 <h2>Data download</h2>
@@ -227,13 +227,14 @@ md5</code></pre>
 ## &quot;1d5e741a4ba198bb44736d5967d0ac59&quot;</code></pre>
 <pre class="r"><code>file.info(data_file)</code></pre>
 <pre><code>##                            size isdir mode               mtime
-## data/dataset_Facebook.csv 37891 FALSE  666 2019-02-22 19:37:30
+## data/dataset_Facebook.csv 37891 FALSE  666 2019-02-25 20:48:04
 ##                                         ctime               atime exe
-## data/dataset_Facebook.csv 2019-02-22 19:37:30 2019-02-22 19:37:30  no</code></pre>
+## data/dataset_Facebook.csv 2019-02-25 20:48:04 2019-02-25 20:48:04  no</code></pre>
 </div>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
-<pre class="r"><code>data &lt;- read.csv(data_file, header = TRUE, sep = &quot;;&quot;)</code></pre>
+<pre class="r"><code># Notice the field separator in the data file is a semicolon
+data &lt;- read.csv(data_file, header = TRUE, sep = &quot;;&quot;)</code></pre>
 </div>
 <div id="data-processing" class="section level2">
 <h2>Data processing</h2>
@@ -294,7 +295,7 @@ t.test(paid_interactions, unpaid_interactions)</code></pre>
 ## sample estimates:
 ## mean of x mean of y 
 ##  278.2302  186.8528</code></pre>
-<p>Based on the test results, it seems paid interactions have a slightly higher mean than unpaid interactions. But there is not enough eveidence to suggest there is a significant difference between the two means.</p>
+<p>Based on the test results, there is not enough evidence to suggest there is a significant difference between the average total interactions of paid and unpaid posts using a significance level of 0.05. (p-value &gt; 0.05)</p>
 <p>Now we will create a boxplot of total interactions by whether the posts were paid or not to get a better look.</p>
 <pre class="r"><code># Do not plot NA values
 ggplot(subset(data, !is.na(Paid))) +

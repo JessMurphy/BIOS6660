@@ -16,7 +16,7 @@ suppressPackageStartupMessages(library(ggplot2))
 
 ## Overview
 
-In this document, we will be working with Facebook data from the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php). The dataset contains information about posts published on the Facebook page of a renowned cosmetics brand in 2014. More information can be found in the [Facebook_metrics](data/Facebook_metrics.txt) file.
+In this document, we will be working with Facebook data from the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php). The dataset contains information about posts published on the Facebook page of a renowned cosmetics brand in 2014. More information can be found in [Facebook_metrics.txt](data/Facebook_metrics.txt).
 
 ## Data download
 
@@ -54,6 +54,7 @@ file.info(data_file)
 ## Load data
 
 ```{r load_data}
+# Notice the field separator in the data file is a semicolon
 data <- read.csv(data_file, header = TRUE, sep = ";")
 ```
 
@@ -114,7 +115,7 @@ unpaid_interactions <- data %>% filter(Paid == "not paid") %>% select(Total.Inte
 t.test(paid_interactions, unpaid_interactions)
 ```
 
-Based on the test results, it seems paid interactions have a slightly higher mean than unpaid interactions. But there is not enough eveidence to suggest there is a significant difference between the two means.
+Based on the test results, there is not enough evidence to suggest there is a significant difference between the average total interactions of paid and unpaid posts using a significance level of 0.05. (p-value > 0.05)
 
 Now we will create a boxplot of total interactions by whether the posts were paid or not to get a better look.
 
