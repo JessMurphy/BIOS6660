@@ -1,0 +1,8 @@
+/BIOS6660/Homework6/rawReads_v2/A1_SO1_S1_R1_001_subset_v2.fastq.gz 150 135093
+/BIOS6660/Homework6/rawReads_v2/A1_SO1_S1_R2_001_subset_v2.fastq.gz 150 135093
+/BIOS6660/Homework6/rawReads_v2/B1_SR1_S5_R1_001_subset_v2.fastq.gz 150 137427
+/BIOS6660/Homework6/rawReads_v2/B1_SR1_S5_R2_001_subset_v2.fastq.gz 150 137427
+/BIOS6660/Homework6/rawReads_v2/C1_WO1_S9_R1_001_subset_v2.fastq.gz 150 166997
+/BIOS6660/Homework6/rawReads_v2/C1_WO1_S9_R2_001_subset_v2.fastq.gz 150 166997
+/BIOS6660/Homework6/rawReads_v2/D1_WR1_S13_R1_001_subset_v2.fastq.gz 150 213363
+/BIOS6660/Homework6/rawReads_v2/D1_WR1_S13_R2_001_subset_v2.fastq.gz 150 213363

@@ -1,0 +1,8 @@
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/A1_SO1_S1_R1_001_subset_v2_trimmed.fastq.gz 132.385 134245
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/A1_SO1_S1_R2_001_subset_v2_trimmed.fastq.gz 131.86 134245
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/B1_SR1_S5_R1_001_subset_v2_trimmed.fastq.gz 133.313 136554
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/B1_SR1_S5_R2_001_subset_v2_trimmed.fastq.gz 132.702 136554
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/C1_WO1_S9_R1_001_subset_v2_trimmed.fastq.gz 132.129 165917
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/C1_WO1_S9_R2_001_subset_v2_trimmed.fastq.gz 131.805 165917
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/D1_WR1_S13_R1_001_subset_v2_trimmed.fastq.gz 132.349 212228
+/home/murphjes/BIOS6660/Homework_6/TrimmedReads/D1_WR1_S13_R2_001_subset_v2_trimmed.fastq.gz 131.994 212228
