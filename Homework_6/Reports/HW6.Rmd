@@ -16,41 +16,46 @@ The following data was obtained from a 2x2 design using fly models. The two vari
 
 ### Raw Reads
 
-The raw reads are located on Yampa under ```/BIOS6660/Homework6/rawReads/```. They are pair-ended reads with a read length of 150.
+The raw reads are located on Yampa under ```/BIOS6660/Homework6/rawReads/```. They are pair-ended reads with a read length of 150. A text file with the number of reads per sample is under ```/home/murphjes/BIOS6660/Homework_6/Data/RawReadsCounts.txt.``` and the bash script to count them is under ```/home/murphjes/BIOS6660/Homework_6/Code/CountRawReads.sh```.
 
-code: ```/home/murphjes/BIOS6660/Homework_6/Code/CountRawReads.sh```
+code: ```chmod -R u+wrx *```  
+```./CountRawReads.sh```
 
 ### Trim Reads
 
-The first 15 bases were trimmed off the reads using cudadapt v1..9.1, which gives us a read length of 135. The trimmed reads are located on Yampa under ```/home/murphjes/BIOS6660/Homework_6/TrimmedReads/```.
+The first 15 bases were trimmed off the reads using cudadapt version 1.18, which gives us a read length slightly less than 135. The trimmed reads are located on Yampa under ```/home/murphjes/BIOS6660/Homework_6/TrimmedReads/``` and the bash script to trim them is located under ```/home/murphjes/BIOS6660/Homework_6/Code/TrimReads.sh```. A text file with the number of trimmed reads per sample is under ```/home/murphjes/BIOS6660/Homework_6/Data/TrimmedReadsCount.txt.``` and the bash script to count them is under ```/home/murphjes/BIOS6660/Homework_6/Code/CountTrimmedReads.sh```.
 
-code: ```/home/murphjes/BIOS6660/Homework_6/Code/TrimReads.sh```
+code: ```chmod -R u+wrx *```  
+```./TrimReads.sh```
+```./CountTrimmedReads.sh```
 
 ### Check for Quality
 
-FastQC was used to evaluate the quality of the reads and check that the trimming went well. Ideally, we would like green checks on the Per Sequence Quality Scores and the Per Base Sequence Content. According to the reports, Sample A looked good, B was okay, and C and D were not as good. Since this data is a small subset of the original data, the quality is not as good. The reports are located on Yampa under ```/home/murphjes/BIOS6660/Homework_6/FastQC/```.
+FastQC was used to evaluate the quality of the reads and check that the trimming went well. Ideally, we would like green checks on the Per Sequence Quality Scores and the Per Base Sequence Content. According to the reports, Sample A looked good, B was okay, and C and D were not very good. Since this data is a small subset of the original data, the quality is not as good. The reports are located on Yampa under ```/home/murphjes/BIOS6660/Homework_6/FastQC/```.
 
 code: ```fastqc *.fastq.gz```
 
 ### Align Reads
 
-The trimmed reads were then aligned to the dm6 genome using hisat2 v2.0.3. The reference files are located on Yampa under ```/BIOS6660/Homework6/indexFiles/``` and the aligned reads are located under ```/home/murphjes/BIOS6660/Homework_6/AlignedReads/```.
+The trimmed reads were then aligned to the dm6 genome using hisat2 version 2.1.0. The reference files are located on Yampa under ```/BIOS6660/Homework6/indexFiles/``` and the aligned reads are located under ```/home/murphjes/BIOS6660/Homework_6/AlignedReads/```.
 
 code: ```export PATH=/usr/local/bin/samtools-1.3:$PATH```
 ```hisat2 -x /BIOS6660/Homework6/indexFiles/dm6.hisat -1 /path/sample_R1_trimmed.fastq.gz -2 /path/sample_R2_trimmed.fastq.gz | samtools view -bS - > alignedSample.bam```
+(repeat for each pair of samples)
 
 ### Quantitate Reads
 
-The trimmed files were also quantified to the Ensembl dm6 transcriptome using RSEM v1.2.31. The reference files are located on Yampa under ```/BIOS6660/Homework6/indexFiles/``` and the quantitation files are located under ```/home/murphjes/BIOS6660/Homework_6/Quantitation/```.
+The trimmed files were also quantified to the Ensembl dm6 transcriptome using RSEM version 1.3.1. The reference files are located on Yampa under ```/BIOS6660/Homework6/indexFiles/``` and the quantitation files are located under ```/home/murphjes/BIOS6660/Homework_6/Quantitation/```.
 
 code: ```export PATH=/usr/local/bin/bowtie2:$PATH```
 ```rsem-calculate-expression -p 8 --time --seed 2020 --bowtie2 --paired-end --seed-length 20 /path/sample_R1_trimmed.fastq.gz /path/sample_R2_trimmed.fastq.gz /BIOS/Homework6/indexFiles/dm6.ensembl sampleName```
+(repeat for each pair of samples)
 
-```{r, warning=FALSE, message=FALSE, error=FALSE, eval=FALSE, echo=FALSE}
+```{r, warning=FALSE, echo=FALSE}
 
-#get the file names and sample names
+# get the file names and sample names
  
-wd = "C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Quantitation/"
+wd = "~/BIOS6660/Homework_6/Quantitation/"
 
 getGeneResults = function(a){
   b = a[grep(".gene",a)]
@@ -58,13 +63,10 @@ getGeneResults = function(a){
 }
 files =  paste(wd, getGeneResults(list.files(wd)), sep="")
 
-getSample = function(a){
-  b = sapply(strsplit(sapply(strsplit(a, ".genes", fixed=TRUE), "[[", 1), split="/", fixed=TRUE), "[[", 15)
-  return(b)
-}
-samples = getSample(files)
+samples = gsub(".genes.results", "", getGeneResults(list.files(wd)))
 
-#load in the data
+# load in the data
+
 for(i in 1:length(files)){
   x = read.table(file=files[i],sep="\t",header=TRUE)
   x = x[,c("gene_id","expected_count")]
@@ -75,76 +77,45 @@ for(i in 1:length(files)){
 
 estCnts = rsem[,-1]
 rownames(estCnts) = rsem$gene_id
-
 counts = round(estCnts,0)
-save(counts, file="C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Data/RSEM_Counts.Rdata")
-```
-```{r, warning=FALSE, message=FALSE, error=FALSE, echo=FALSE}
 
-load(file="C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Data/RSEM_Counts.Rdata")
-```
-
-```{r, warning=FALSE, message=FALSE, error=FALSE, eval=FALSE, echo=FALSE}
-
-wd = "C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Quantitation/"
-
-getTranscriptResults = function(a){
-  b = a[grep(".isoform",a)]
-  return(b)
-}
-files =  paste(wd, getTranscriptResults(list.files(wd)), sep="")
-
-#load in the data
-for(i in 1:length(files)){
-  x = read.table(file=files[i],sep="\t",header=TRUE)
-  x = x[,c("transcript_id","expected_count")]
-  #colnames(x)[2] = files.v2[i, "sample"]
-  if(files[i]!=files[1]) rsem = merge(x,rsem,by=c("transcript_id"),all=TRUE)
-  if(files[i]==files[1]) rsem = x
-}
-
-estCnts = rsem[,-1]
-rownames(estCnts) = rsem$transcript_id
-
-transcript.counts = round(estCnts,0)
-save(transcript.counts, file="C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Data/RSEM_TranscriptCounts.Rdata")
-```
-```{r, warning=FALSE, message=FALSE, error=FALSE, echo=FALSE}
-load(file="C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Data/RSEM_TranscriptCounts.Rdata")
+save(counts, file="~/BIOS6660/Homework_6/Data/RSEM.counts.gene.Rdata")
 ```
 
 ### Sample Counts
 
 The following table shows the sum of reads for each sample at each point in the data processing.
 
-```{r, warning=FALSE, message=FALSE, error=FALSE, echo=FALSE}
+```{r, warning=FALSE, echo=FALSE}
 
-### raw reads
-raw = read.table(file="C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Data/RawReadsCounts.txt")
+# raw reads
+raw = read.table(file="~/BIOS6660/Homework_6/Data/RawReadsCounts.txt")
 raw$sample = sapply(strsplit(sapply(strsplit(as.character(raw$V1), split="_R", fixed=TRUE), "[[", 1), split="rawReads_v2/", fixed=TRUE), "[[", 2)
 
 raw2 = raw[,c("V3", "sample")]
 colnames(raw2)[1] = "raw total Counts"
 raw2 = raw2[!duplicated(raw2),]
 
-### trimmed reads
-trimmed = read.table(file="C:/Users/jrain/AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/murphjes/BIOS6660/Homework_6/Data/TrimmedReadsCount.txt")
+# trimmed reads
+trimmed = read.table(file="~/BIOS6660/Homework_6/Data/TrimmedReadsCount.txt")
 trimmed$sample = sapply(strsplit(sapply(strsplit(as.character(trimmed$V1), split="_R", fixed=TRUE), "[[", 1), split="TrimmedReads/", fixed=TRUE), "[[", 2)
 
 trimmed2 = trimmed[,c("V3", "sample")]
 colnames(trimmed2)[1] = "trimmed total Counts"
 trimmed2 = trimmed2[!duplicated(trimmed2),]
 
-### rsem reads
+# rsem counts
 rsem.sums = as.matrix(colSums(counts))
 colnames(rsem.sums) = "RSEM total Counts"
 
+# combine into table
 m1 = merge(raw2, trimmed2, by="sample")
 m2 = merge(m1, rsem.sums, by.x="sample", by.y=0)
 m2$trimmPercent = (m2$`trimmed total Counts`/m2$raw)*100
 m2$rsemPercent.fromTrimm = (m2$`RSEM total Counts`/m2$`trimmed total Counts`)*100
-
 colnames(m2) = c("Sample", "Raw", "Trim", "RSEM", "Trim Percent", "RSEM Percent from Trim")
+
+# make numbers pretty to view
 m2[,2] = prettyNum(m2[,2], big.mark=",")
 m2[,3] = prettyNum(m2[,3], big.mark=",")
 m2[,4] = prettyNum(m2[,4], big.mark=",")

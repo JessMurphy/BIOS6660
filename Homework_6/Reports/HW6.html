@@ -198,31 +198,34 @@ $(document).ready(function () {
 </div>
 <div id="raw-reads" class="section level3">
 <h3>Raw Reads</h3>
-<p>The raw reads are located on Yampa under <code>/BIOS6660/Homework6/rawReads/</code>. They are pair-ended reads with a read length of 150.</p>
-<p>code: <code>/home/murphjes/BIOS6660/Homework_6/Code/CountRawReads.sh</code></p>
+<p>The raw reads are located on Yampa under <code>/BIOS6660/Homework6/rawReads/</code>. They are pair-ended reads with a read length of 150. A text file with the number of reads per sample is under <code>/home/murphjes/BIOS6660/Homework_6/Data/RawReadsCounts.txt.</code> and the bash script to count them is under <code>/home/murphjes/BIOS6660/Homework_6/Code/CountRawReads.sh</code>.</p>
+<p>code: <code>chmod -R u+wrx *</code><br />
+<code>./CountRawReads.sh</code></p>
 </div>
 <div id="trim-reads" class="section level3">
 <h3>Trim Reads</h3>
-<p>The first 15 bases were trimmed off the reads using cudadapt v1..9.1, which gives us a read length of 135. The trimmed reads are located on Yampa under <code>/home/murphjes/BIOS6660/Homework_6/TrimmedReads/</code>.</p>
-<p>code: <code>/home/murphjes/BIOS6660/Homework_6/Code/TrimReads.sh</code></p>
+<p>The first 15 bases were trimmed off the reads using cudadapt version 1.18, which gives us a read length slightly less than 135. The trimmed reads are located on Yampa under <code>/home/murphjes/BIOS6660/Homework_6/TrimmedReads/</code> and the bash script to trim them is located under <code>/home/murphjes/BIOS6660/Homework_6/Code/TrimReads.sh</code>. A text file with the number of trimmed reads per sample is under <code>/home/murphjes/BIOS6660/Homework_6/Data/TrimmedReadsCount.txt.</code> and the bash script to count them is under <code>/home/murphjes/BIOS6660/Homework_6/Code/CountTrimmedReads.sh</code>.</p>
+<p>code: <code>chmod -R u+wrx *</code><br />
+<code>./TrimReads.sh</code> <code>./CountTrimmedReads.sh</code></p>
 </div>
 <div id="check-for-quality" class="section level3">
 <h3>Check for Quality</h3>
-<p>FastQC was used to evaluate the quality of the reads and check that the trimming went well. Ideally, we would like green checks on the Per Sequence Quality Scores and the Per Base Sequence Content. According to the reports, Sample A looked good, B was okay, and C and D were not as good. Since this data is a small subset of the original data, the quality is not as good. The reports are located on Yampa under <code>/home/murphjes/BIOS6660/Homework_6/FastQC/</code>.</p>
+<p>FastQC was used to evaluate the quality of the reads and check that the trimming went well. Ideally, we would like green checks on the Per Sequence Quality Scores and the Per Base Sequence Content. According to the reports, Sample A looked good, B was okay, and C and D were not very good. Since this data is a small subset of the original data, the quality is not as good. The reports are located on Yampa under <code>/home/murphjes/BIOS6660/Homework_6/FastQC/</code>.</p>
 <p>code: <code>fastqc *.fastq.gz</code></p>
 </div>
 <div id="align-reads" class="section level3">
 <h3>Align Reads</h3>
-<p>The trimmed reads were then aligned to the dm6 genome using hisat2 v2.0.3. The reference files are located on Yampa under <code>/BIOS6660/Homework6/indexFiles/</code> and the aligned reads are located under <code>/home/murphjes/BIOS6660/Homework_6/AlignedReads/</code>.</p>
-<p>code: <code>export PATH=/usr/local/bin/samtools-1.3:$PATH</code> <code>hisat2 -x /BIOS6660/Homework6/indexFiles/dm6.hisat -1 /path/sample_R1_trimmed.fastq.gz -2 /path/sample_R2_trimmed.fastq.gz | samtools view -bS - &gt; alignedSample.bam</code></p>
+<p>The trimmed reads were then aligned to the dm6 genome using hisat2 version 2.1.0. The reference files are located on Yampa under <code>/BIOS6660/Homework6/indexFiles/</code> and the aligned reads are located under <code>/home/murphjes/BIOS6660/Homework_6/AlignedReads/</code>.</p>
+<p>code: <code>export PATH=/usr/local/bin/samtools-1.3:$PATH</code> <code>hisat2 -x /BIOS6660/Homework6/indexFiles/dm6.hisat -1 /path/sample_R1_trimmed.fastq.gz -2 /path/sample_R2_trimmed.fastq.gz | samtools view -bS - &gt; alignedSample.bam</code> (repeat for each pair of samples)</p>
 </div>
 <div id="quantitate-reads" class="section level3">
 <h3>Quantitate Reads</h3>
-<p>The trimmed files were also quantified to the Ensembl dm6 transcriptome using RSEM v1.2.31. The reference files are located on Yampa under <code>/BIOS6660/Homework6/indexFiles/</code> and the quantitation files are located under <code>/home/murphjes/BIOS6660/Homework_6/Quantitation/</code>.</p>
-<p>code: <code>export PATH=/usr/local/bin/bowtie2:$PATH</code> <code>rsem-calculate-expression -p 8 --time --seed 2020 --bowtie2 --paired-end --seed-length 20 /path/sample_R1_trimmed.fastq.gz /path/sample_R2_trimmed.fastq.gz /BIOS/Homework6/indexFiles/dm6.ensembl sampleName</code></p>
+<p>The trimmed files were also quantified to the Ensembl dm6 transcriptome using RSEM version 1.3.1. The reference files are located on Yampa under <code>/BIOS6660/Homework6/indexFiles/</code> and the quantitation files are located under <code>/home/murphjes/BIOS6660/Homework_6/Quantitation/</code>.</p>
+<p>code: <code>export PATH=/usr/local/bin/bowtie2:$PATH</code> <code>rsem-calculate-expression -p 8 --time --seed 2020 --bowtie2 --paired-end --seed-length 20 /path/sample_R1_trimmed.fastq.gz /path/sample_R2_trimmed.fastq.gz /BIOS/Homework6/indexFiles/dm6.ensembl sampleName</code> (repeat for each pair of samples)</p>
 </div>
 <div id="sample-counts" class="section level3">
 <h3>Sample Counts</h3>
+<p>The following table shows the sum of reads for each sample at each point in the data processing.</p>
 <table>
 <thead>
 <tr class="header">
