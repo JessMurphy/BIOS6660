@@ -124,3 +124,5 @@ m2[,6] = paste(round(m2[,6], 2), "%", sep="")
 ```
 
 `r kable(m2, align="c", row.names=FALSE)`
+
+Looks great Jessica! 
