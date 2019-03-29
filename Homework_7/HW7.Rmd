@@ -1,0 +1,140 @@
+---
+title: "RNA-Seq Differential Expression"
+author: "Jessica Murphy"
+date: "March 29, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, error=FALSE)
+```
+
+### Overview
+
+The following data was obtained from a 2x2 factorial design using fly models. The two variables of interest are strain and tissue. The strains are white eyed (W) and sevenless (S) and the tissues are optic lope (O) and retina (R). There are four samples in each tissue/strain combination.
+
+```{r load_file}
+load(file="~/BIOS6660/Homework_7/Data/countsAndPheno.Rdata")
+```
+
+The dataset contains a matrix of RSEM expected counts for `r prettyNum(nrow(counts), big.mark=",")` genes and a matrix of phenotypes to accompany the counts.
+
+### Visualize Data
+
+Principal component analysis (PCA) was initially performed on the data and the PC plots of the `r prettyNum(ncol(counts))` samples are shown below.
+
+```{r pca, fig.height=5, fig.width=6, fig.align='center'}
+library(ggplot2)
+library(RColorBrewer)
+
+# perform pca
+pca.results = prcomp(log2(counts+1))
+
+# get the results you want
+propEx = summary(pca.results)$importance #proportion of variance explained
+toplot = data.frame(pca.results$rotation[,1:2]) #PC1 and PC2
+toplot2 = data.frame(pca.results$rotation[,2:3]) #PC2 and PC3
+toplot$group = substr(sapply(strsplit(rownames(toplot), split="_", fixed=TRUE), "[[", 2), 1, 2)
+toplot2$group = substr(sapply(strsplit(rownames(toplot2), split="_", fixed=TRUE), "[[", 2), 1, 2)
+
+# make PC1 vs PC2 plot
+colors = brewer.pal(9, "Set1") #define colors
+orig = ggplot(toplot, aes(x=PC1, y=PC2, color=as.character(group))) + geom_point() +
+  scale_color_manual(values=colors[c(1:4)]) +
+  xlab(paste("PC1 (", round(100*propEx[2,"PC1"], 2), "%)", sep="")) +
+  ylab(paste("PC2 (", round(100*propEx[2,"PC2"], 2), "%)", sep="")) +
+  ggtitle("PC1 vs PC2") + 
+  labs(color="group") +
+  theme(legend.position="bottom")
+orig
+
+# make PC2 vs PC3 plot
+orig2 = ggplot(toplot2, aes(x=PC2, y=PC3, color=as.character(group))) + geom_point() +
+  scale_color_manual(values=colors[c(1:4)]) +
+  xlab(paste("PC2 (", round(100*propEx[2,"PC2"], 2), "%)", sep="")) +
+  ylab(paste("PC3 (", round(100*propEx[2,"PC3"], 2), "%)", sep="")) +
+  ggtitle("PC2 vs PC3") + 
+  labs(color="group") +
+  theme(legend.position="bottom")
+orig2
+```
+
+The PC1 vs PC2 plot shows a large separation in tissue type on PC2. Also, a very large percent of the variance is explained by PC1. The PC2 vs PC3 plot shows a great separation in groups. PC2 describes tissue differences (2nd letter in group) and PC3 describes strain differences (1st letter in group).
+
+### Perform Statistical Test
+
+A liklihood ratio test (LRT) was then performed using DESeq2 to determine which genes have a significant strain effect regardless of dependence/independence on tissue.
+
+```{r test}
+library(DESeq2)
+
+dds = DESeqDataSetFromMatrix(countData=as.matrix(round(counts)), colData=pheno, design = ~strain*tissue)
+
+# perform liklihood ratio test to determine strain effects
+dds = DESeq(dds, test="LRT", reduced= ~tissue, fitType="local")
+strainEffects = results(dds, independentFiltering=FALSE)
+```
+
+Based on an adjusted p-value < 0.05, there were `r prettyNum(sum(strainEffects$padj < 0.05, na.rm=TRUE), big.mark=",")` gene candidates. Since this is such a large amount, a stricter criteria was applied. Based on an adjusted p-value < 0.001, there are now `r prettyNum(sum(strainEffects$padj < 0.001, na.rm=TRUE), big.mark=",")` gene candidates. The top 10 candidates are listed below.
+
+```{r cand}
+library(knitr)
+
+# get top 100 gene candidates
+gene_cand = head(strainEffects[order(strainEffects$padj), ], n=100)
+
+# get top 10 candidates
+top10_genes = as.data.frame(head(gene_cand[ ,-c(3:5)], n=10))
+top10_genes$padj = format(top10_genes$padj, scientific=TRUE)
+colnames(top10_genes) = c("Base Mean", "log2 Fold Change", "Adjusted p-value")
+
+gene_ids = rownames(gene_cand) #flybase IDs
+gene_counts = counts[rownames(counts) %in% gene_ids, ] #raw counts
+```
+
+`r kable(top10_genes, align='c')`
+
+### Visualize Candidates
+
+The following heatmap shows the top 100 candidates with the smallest adjusted p-values. This is good to see large trends, but difficult to see individual genes.
+
+```{r heatmap, fig.align='center'}
+library(gplots)
+
+zscore = t(apply(gene_counts, 1, function(a) (a-mean(a))/sd(a)))
+my.palette = colorRampPalette(c("blue", "white", "red"))(n=299)
+heatmap.2(zscore, dendrogram="both", trace="none", col=my.palette, labRow=FALSE, margins=c(7,5))
+```
+
+### Perform Enrichment Analysis
+
+Enrichment analysis was then performed using enrichR to determine if the previous 100 candidates are part of any known biological pathway or system. 
+
+```{r enrichment, results='hide'}
+library("biomaRt")
+library(enrichR)
+
+# get gene symbols from flybase IDs
+ensembl = useMart("ensembl", dataset = "dmelanogaster_gene_ensembl")
+bm_results = getBM(mart=ensembl, 
+                   filters='ensembl_gene_id', 
+                   values=gene_ids, 
+                   attributes=c('ensembl_gene_id', 'external_gene_name',
+                                'hsapiens_homolog_associated_gene_name'))
+gene_names = bm_results[ ,3]
+gene_names = gene_names[gene_names!=""] #remove blank cells
+
+# perform enrichment analysis
+dbs = c("GO_Molecular_Function_2018", "GO_Biological_Process_2018", "KEGG_2016")
+enrich = enrichr(gene_names, dbs)
+
+# get top 10 enriched processes
+top10_enrich = head(enrich$GO_Biological_Process_2018[ ,c(1,2,4)], n=10)
+top10_enrich = top10_enrich[order(top10_enrich$Adjusted.P.value), ]
+top10_enrich$Adjusted.P.value = format(top10_enrich$Adjusted.P.value, scientific=TRUE)
+colnames(top10_enrich) = c("Process", "Overlap", "Adjusted p-value")
+```
+
+The flybase gene IDs were first converted to `r prettyNum(length(gene_names))` human associated genes. Using the GO Biological Process 2018 database, the top 10 processes with the smallest adjusted p-values are listed below.
+
+`r kable(top10_enrich, align=c('l','c','c'), row.names=FALSE)`
