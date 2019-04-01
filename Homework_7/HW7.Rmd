@@ -1,7 +1,7 @@
 ---
 title: "RNA-Seq Differential Expression"
 author: "Jessica Murphy"
-date: "March 29, 2019"
+date: "April 2, 2019"
 output: html_document
 ---
 
@@ -21,11 +21,55 @@ The dataset contains a matrix of RSEM expected counts for `r prettyNum(nrow(coun
 
 ### Visualize Data
 
-Principal component analysis (PCA) was initially performed on the data and the PC plots of the `r prettyNum(ncol(counts))` samples are shown below.
+The dendrogram below was initially constructed to look at the data. Note: The y-axis represents distance, or dissimilarity.
 
-```{r pca, fig.height=5, fig.width=6, fig.align='center'}
-library(ggplot2)
+```{r dendro, results='hide'}
+library(WGCNA)
 library(RColorBrewer)
+
+counts.hclust = hclust(as.dist(1-cor(log2(counts+1), method="pearson")))
+group.hclust = substr(sapply(strsplit(counts.hclust$labels, split="_", fixed=TRUE), "[[", 2), 1, 2)
+
+colors = brewer.pal(9, "Set1") #define colors
+
+# define colors by group
+groups4plot = c()
+for(i in 1:length(group.hclust)){
+  if(group.hclust[i]=="WR"){groups4plot[i]=colors[1]}
+  if(group.hclust[i]=="WO"){groups4plot[i]=colors[2]}
+  if(group.hclust[i]=="SR"){groups4plot[i]=colors[3]}
+  if(group.hclust[i]=="SO"){groups4plot[i]=colors[4]}
+}
+groups4plot = as.matrix(groups4plot)
+colnames(groups4plot) = "Group"
+
+# define colors by tissue
+tissues4plot = c()
+for(i in 1:length(group.hclust)){
+  if(grepl("O", group.hclust[i], fixed=TRUE)){tissues4plot[i]=colors[5]}
+  if(grepl("R", group.hclust[i], fixed=TRUE)){tissues4plot[i]=colors[6]}
+}
+tissues4plot = as.matrix(tissues4plot)
+colnames(tissues4plot) = "Tissue"
+
+# define colors by strain
+strain4plot = c()
+for(i in 1:length(group.hclust)){
+  if(grepl("W", group.hclust[i], fixed=TRUE)){strain4plot[i]=colors[7]}
+  if(grepl("S", group.hclust[i], fixed=TRUE)){strain4plot[i]=colors[8]}
+}
+strain4plot = as.matrix(strain4plot)
+colnames(strain4plot) = "Strain"
+
+plotDendroAndColors(dendro=counts.hclust, colors=cbind(groups4plot, tissues4plot, strain4plot), main="log2(RSEM counts + 1)", ylab="1 - Pearson Correlation", cex.dendroLabel=0.45)
+```
+
+The diagram shows clustering by groups really well. Tissue explains the main distance (first break at 0.1) and strain explains the second most distance (second break around 0.05).
+
+Principal component analysis (PCA) was also performed on the data and the PC plots of the `r prettyNum(ncol(counts))` samples are shown below.
+
+```{r pca, fig.height=5, fig.width=6}
+library(ggplot2)
 
 # perform pca
 pca.results = prcomp(log2(counts+1))
@@ -38,7 +82,6 @@ toplot$group = substr(sapply(strsplit(rownames(toplot), split="_", fixed=TRUE), 
 toplot2$group = substr(sapply(strsplit(rownames(toplot2), split="_", fixed=TRUE), "[[", 2), 1, 2)
 
 # make PC1 vs PC2 plot
-colors = brewer.pal(9, "Set1") #define colors
 orig = ggplot(toplot, aes(x=PC1, y=PC2, color=as.character(group))) + geom_point() +
   scale_color_manual(values=colors[c(1:4)]) +
   xlab(paste("PC1 (", round(100*propEx[2,"PC1"], 2), "%)", sep="")) +
@@ -98,7 +141,7 @@ gene_counts = counts[rownames(counts) %in% gene_ids, ] #raw counts
 
 The following heatmap shows the top 100 candidates with the smallest adjusted p-values. This is good to see large trends, but difficult to see individual genes.
 
-```{r heatmap, fig.align='center'}
+```{r heatmap}
 library(gplots)
 
 zscore = t(apply(gene_counts, 1, function(a) (a-mean(a))/sd(a)))
@@ -108,10 +151,10 @@ heatmap.2(zscore, dendrogram="both", trace="none", col=my.palette, labRow=FALSE,
 
 ### Perform Enrichment Analysis
 
-Enrichment analysis was then performed using enrichR to determine if the previous 100 candidates are part of any known biological pathway or system. 
+Finally, enrichment analysis was performed using enrichR to determine if the previous 100 candidates are part of any known biological pathway or system. 
 
 ```{r enrichment, results='hide'}
-library("biomaRt")
+library(biomaRt)
 library(enrichR)
 
 # get gene symbols from flybase IDs
