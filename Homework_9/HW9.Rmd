@@ -1,0 +1,91 @@
+---
+title: "Publicly Available Data"
+author: "Jessica Murphy"
+date: "April 16, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, results='hide')
+library(GEOsearch)
+library(GEOquery)
+library(DBI)
+library(RSQLite)
+library(GEOmetadb)
+library(TCGAbiolinks)
+library(knitr)
+```
+
+### GEOsearch
+
+The following table shows the number of datasets available at different filtering steps using GEOsearch in R. The first step browsed for the original search term: bladder cancer, alcohol use disorder, or type 1 diabetes. The second step selected datasets from only human samples. The third step selected datasets that used specific microarray techologies: Illumina human-6 v2.0 expression beadchip, Illumina HumanHT-12 V4.0 expression beadchip, and Affymetrix Human Genome U133 Plus 2.0 Array or the Affymetrix Human Genome U133A 2.0 Array. The fourth step selected datasets with a sample size of more than 100 people.
+
+```{r GEOsearch}
+# select specific microarray technologies
+arraysWant = c("GPL6102", "GPL10558", "GPL570", "GPL571")
+
+# search bladder cancer / filter
+bladder.1 = GEOSearchTerm("bladder cancer")
+bladder.2 = bladder.1[which(bladder.1$Organism=="Homo sapiens"),]
+bladder.3 = bladder.2[which(bladder.2$Platform %in% arraysWant),]
+bladder.4 = bladder.3[which(bladder.3$Sample.Number>100),]
+bladder = c(nrow(bladder.1), nrow(bladder.2), nrow(bladder.3), nrow(bladder.4))
+
+# search alcohol use disorder / filter
+alcohol.1 = GEOSearchTerm("alcohol use disorder")
+alcohol.2 = alcohol.1[which(alcohol.1$Organism=="Homo sapiens"),]
+alcohol.3 = alcohol.2[which(alcohol.2$Platform %in% arraysWant),]
+alcohol.4 = alcohol.3[which(alcohol.3$Sample.Number>100),]
+alcohol = c(nrow(alcohol.1), nrow(alcohol.2), nrow(alcohol.3), nrow(alcohol.4))
+
+# search type 1 diabetes / filter
+diabetes.1 = GEOSearchTerm("type1 diabetes")
+diabetes.2 = diabetes.1[which(diabetes.1$Organism=="Homo sapiens"),]
+diabetes.3 = diabetes.2[which(diabetes.2$Platform %in% arraysWant),]
+diabetes.4 = diabetes.3[which(diabetes.3$Sample.Number>100),]
+diabetes = c(nrow(diabetes.1), nrow(diabetes.2), nrow(diabetes.3), nrow(diabetes.4))
+
+# combine into table
+datasets = data.frame(bladder, alcohol, diabetes)
+colnames(datasets) = c("Bladder Cancer", "Alcohol Use Disorder", "Type 1 Diabetes")
+row.names(datasets) =c ("Step 1: Original Search", "Step 2: Only in humans", "Step 3: Specific Arrays", "Step 4: Certain Sample Size")
+```
+
+`r kable(datasets, row.names=TRUE, align='c')`
+
+### GEOquery
+
+```{r GEOquery, cache=TRUE}
+# get data
+data = getGEO("GSE13507")
+data = data[[1]]
+express = exprs(data) # expression matrix
+pheno = pData(data) # data frame of metadata
+
+# get gender statistics
+sex = as.factor(pheno$`SEX:ch1`)
+
+# get age statistics / remove NAs
+age.na = as.numeric(pheno$`AGE:ch1`)
+age = age.na[!is.na(age.na)]
+```
+
+Data was downloaded from GSE13507 using GEOquery. There were `r prettyNum(dim(express)[1], big.mark=",")` probe sets and `r dim(express)[2]` samples. The gender statistics from the metadata showed there were `r summary(sex)[1]` females, `r summary(sex)[2]` males, and `r summary(sex)[3]` missing values. The age statistics showed the average age was `r prettyNum(mean(age), digits=4)` with a standard deviation of `r prettyNum(sd(age), digits=4)` and `r summary(age.na)[7]` missing values.
+
+### TCGAbiolinks
+
+```{r TCGA, cache=TRUE}
+# perform query
+query = GDCquery(project=c("TCGA-BLCA"), data.category="Sequencing Reads",
+                 legacy=FALSE,  platform="Illumina", sample.type="Primary solid Tumor")
+
+# get results
+results = query$results[[1]]
+
+# separate by experiment type
+RNAseq = results[which(results$experimental_strategy=="RNA-Seq"),]
+miRNAseq = results[which(results$experimental_strategy=="miRNA-Seq"),]
+WXS = results[which(results$experimental_strategy=="WXS"),]
+```
+
+Using TCGAbiolinks, a search was performed for bladder cancer sequencing data that used Illumina technology and had gene expression from primary solid tumors. There were `r prettyNum(nrow(results), big.mark=",")` resulting samples. Of these, `r nrow(RNAseq)` were from RNA-Seq experiments, `r nrow(miRNAseq)` were from miRNA-Seq experiments, and `r nrow(WXS)` were from whole exome sequencing (WXS) experiments.
