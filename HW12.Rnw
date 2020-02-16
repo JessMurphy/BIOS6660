@@ -1,0 +1,69 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+
+
+\begin{document}
+\title{Genetics HW12}
+\author{Jessica Murphy}
+
+\maketitle
+
+<<chunk_lib>>=
+sessionInfo()
+@
+  
+\section{Read data}
+  
+<<chunk_data>>= 
+
+ceu_tmp = read.table("/home/murphjes/BIOS6660/Genetics/ceu.frq", 
+                      stringsAsFactors = F, header=T) 
+ceu = ceu_tmp[!is.na(ceu_tmp$MAF), ]
+
+yri_tmp = read.table("/home/murphjes/BIOS6660/Genetics/yri.frq", 
+                      stringsAsFactors = F, header=T) 
+yri = yri_tmp[!is.na(yri_tmp$MAF), ]
+
+chb_jpt_tmp = read.table("/home/murphjes/BIOS6660/Genetics/chb_jpt.frq", 
+                          stringsAsFactors = F, header=T) 
+chb_jpt = chb_jpt_tmp[!is.na(chb_jpt_tmp$MAF), ]
+
+#identify SNPs that appear in all three datasets
+common_SNPs = intersect(intersect(ceu$SNP, yri$SNP), chb_jpt$SNP)
+
+#create new CEU dataset only having common SNPs and sorted by SNP names 
+ceu_common = ceu[ceu$SNP %in% common_SNPs, ] 
+ceu_order = ceu_common[order(ceu_common$SNP), ]
+
+#create new YRI dataset only having common SNPs and sorted by SNP names 
+yri_common = yri[yri$SNP %in% common_SNPs, ] 
+yri_order = yri_common[order(yri_common$SNP), ]
+names(yri_order) = c( "CHRy", "SNPy", "A1y","A2y", "MAFy", "NCHROBSy")
+
+#create new chb jpt dataset only having common SNPs and sorted by SNP names 
+chb_jpt_common = chb_jpt[chb_jpt$SNP %in% common_SNPs, ] 
+chb_jpt_order = chb_jpt_common[order(chb_jpt_common$SNP), ] 
+names(chb_jpt_order) = c( "CHRa", "SNPa", "A1a","A2a", "MAFa", "NCHROBSa")
+
+#merge three datasets 
+alldata = cbind(ceu_order, yri_order, chb_jpt_order)
+
+#check if merge was correct
+all.equal(alldata$SNP, alldata$SNPy, alldata$SNPa)
+
+@
+
+\section{CEU vs YRI}
+
+<<chunk_diff>>=
+
+#CEU and YRI have some SNPs with different minor allele
+alldata[alldata$A1==alldata$A2y, "MAF"] = 1 - alldata[alldata$A1==alldata$A2y, "MAF"]
+
+#calculate absolute value of the MAF difference between each SNP 
+ceu_yri_diff = abs(alldata$MAF - alldata$MAFy) 
+hist(ceu_yri_diff)
+
+@
+
+\end{document}
